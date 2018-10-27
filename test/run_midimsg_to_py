@@ -1,0 +1,19 @@
+#!/bin/bash
+
+export PYTHONPATH="$(dirname $0)/..:$PYTHONPATH"
+
+fifo_name=/tmp/test_fifo
+
+mkfifo -ma=rw ${fifo_name}_output
+
+sleep 1
+
+test/midimsg_to_py $fifo_name&
+
+sleep 1
+
+python3 test/midimsg_from_c.py $fifo_name&
+
+sleep 1
+
+rm ${fifo_name}_output

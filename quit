@@ -1,0 +1,8 @@
+#!/bin/bash
+
+kill $(< /tmp/fifo_test_write_pid)
+kill $(< /tmp/fifo_test_read_pid)
+rm /tmp/myfifo
+
+rm /tmp/fifo_test_write_pid
+rm /tmp/fifo_test_read_pid

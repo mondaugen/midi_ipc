@@ -1,0 +1,18 @@
+#!/bin/bash
+
+[ -z $FIFO_NAME ] && FIFO_NAME=/tmp/midi_proc_jack_fifo
+
+input_fifo_name="${FIFO_NAME}_input"
+output_fifo_name="${FIFO_NAME}_output"
+
+[ -a $input_fifo_name || -a $output_fifo_name ] && { echo "already running, quit with ./quit"; exit 1 }
+
+mkfifo $input_fifo_name $output_fifo_name
+
+python3 read_from_fifo.py&
+
+echo "$!" > /tmp/fifo_test_read_pid
+
+python3 write_to_fifo.py&
+
+echo "$!" > /tmp/fifo_test_write_pid
