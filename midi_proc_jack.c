@@ -340,7 +340,7 @@ main (int argc, char* argv[])
     client_name = argv[1];
     fifo_path_stub = argv[2];
 
-	if (argc >= 3) {
+	if (argc >= 4) {
 		if (!strcmp (argv[3], "-p")) {
             passthrough = 1;
         }

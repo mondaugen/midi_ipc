@@ -1,2 +1,5 @@
 *.o
 __pycache__
+test_fastcache
+test/midimsg_to_py
+midi_proc_jack

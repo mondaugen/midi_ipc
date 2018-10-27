@@ -28,12 +28,13 @@ python3 midi_proc_pass.py $fifo_name &
 
 sleep 1
 
-./midi_proc_jack $client_name $fifo_name &
+#gdb --args ./midi_proc_jack $client_name $fifo_name
+./midi_proc_jack $client_name $fifo_name&
 
 sleep 1
 
 jack_connect Sequencer:out ${client_name}:input
-jack connect fluidsynth:midi
+jack_connect ${client_name}:out fluidsynth:midi
 jack_connect fluidsynth:l_00 system:playback_1
 jack_connect fluidsynth:r_00 system:playback_2
 
