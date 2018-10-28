@@ -1,17 +1,26 @@
 import common
 import time
 import sys
+import signal
 
 if len(sys.argv) < 2:
     raise Exception("Specify fifo path stub")
 
 fifo_path_stub = sys.argv[1]
 
-input_fifo_path = fifo_path_stub + '_input'
-output_fifo_path = fifo_path_stub + '_output'
+# output / input reversed for slave
+input_fifo_path = fifo_path_stub + '_output'
+output_fifo_path = fifo_path_stub + '_input'
 
 input_fifo = open(input_fifo_path,'rb',buffering=0)
 output_fifo = open(output_fifo_path,'wb',buffering=0)
+
+done=False
+
+def sig_handle(num,frame):
+    done = True
+
+signal.signal(signal.SIGINT,sig_handle)
 
 while not done:
     # read in

@@ -364,11 +364,11 @@ main (int argc, char* argv[])
 		exit (EXIT_FAILURE);
 	}
 
-    if ((input_fifo_fd = open_output_fifo(fifo_path_stub)) < 0) {
+    if ((input_fifo_fd = open_input_fifo(fifo_path_stub)) < 0) {
         exit (EXIT_FAILURE);
     }
 
-    if ((output_fifo_fd = open_input_fifo(fifo_path_stub)) < 0) {
+    if ((output_fifo_fd = open_output_fifo(fifo_path_stub)) < 0) {
         exit (EXIT_FAILURE);
     }
 
@@ -408,7 +408,9 @@ main (int argc, char* argv[])
 	if (r != 0) {
 		fprintf (stderr, "Could not activate client.\n");
 		exit (EXIT_FAILURE);
-	}
+	} else {
+        printf("Client %s now active", client_name);
+    }
 
     pthread_t midi_to_msgq;
     pthread_t msgq_to_midi;
