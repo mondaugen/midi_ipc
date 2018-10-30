@@ -12,6 +12,7 @@ open_output_fifo (const char *path)
 {
     char output_path[strlen(path)+strlen("_output")+1];
     strcat(strcpy(output_path,path),"_output");
+    printf("Opening output FIFO at path %s\n",output_path);
     int ret = open(output_path, O_WRONLY);
     if (ret < 0) {
         char buf[strlen("Opening output FIFO at path ")+strlen(output_path)+1];
@@ -27,6 +28,7 @@ open_input_fifo (const char *path)
 {
     char input_path[strlen(path)+strlen("_input")+1];
     strcat(strcpy(input_path,path),"_input");
+    printf("Opening input FIFO at path %s\n",input_path);
     int ret = open(input_path, O_RDONLY);
     if (ret < 0) {
         char buf[strlen("Opening input FIFO at path ")+strlen(input_path)+1];
@@ -35,4 +37,7 @@ open_input_fifo (const char *path)
         return -1;
     }
     return ret;
-}
+} 
+
+
+

@@ -16,20 +16,20 @@ mkfifo -ma=rw ${fifo_name}_output ${fifo_name}_input
 
 # start sequencer
 
-jack_midiseq Sequencer 24000 0 60 8000 12000 63 8000&
+launch_ jack_midiseq Sequencer 24000 0 60 8000 12000 63 8000&
 
 # start fluidsynth
 
-fluidsynth -i -s -a jack -m jack /usr/share/sounds/sf2/FluidR3_GM.sf2&
+launch_ fluidsynth -i -s -a jack -m jack /usr/share/sounds/sf2/FluidR3_GM.sf2&
 
 sleep 1
 
-python3 midi_proc_pass.py $fifo_name &
+launch_ python3 midi_proc_pass.py $fifo_name &
 
 sleep 1
 
 #gdb --args ./midi_proc_jack $client_name $fifo_name
-./midi_proc_jack $client_name $fifo_name&
+launch_ ./midi_proc_jack $client_name $fifo_name&
 
 sleep 1
 
@@ -38,8 +38,16 @@ jack_connect ${client_name}:out fluidsynth:midi
 jack_connect fluidsynth:l_00 system:playback_1
 jack_connect fluidsynth:r_00 system:playback_2
 
+on_quit ()
+{
+    kill_all
+    rm ${fifo_name}_output ${fifo_name}_input
+    exit 0
+}
+
+trap on_quit SIGINT
+
 while [ 1 ]; do
     sleep 1
 done
 
-#rm ${fifo_name}_output ${fifo_name}_input

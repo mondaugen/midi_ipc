@@ -3,12 +3,17 @@
 launch_ () 
 {
     $*&
-    echo "$!" > /tmp/.${1}_pid
+    _pid=$!
+    echo "$_pid" >> /tmp/.$$_pids
+    echo "$1 $_pid"
 }
 
-# Kill program that was started with launch_
-kill_ ()
+# Kill programs that were started with launch_
+kill_all ()
 {
-    kill $(< /tmp/.${1}_pid)
+    for pid in $(< /tmp/.$$_pids); do
+        kill $pid
+    done
+    rm /tmp/.$$_pids
 }
     

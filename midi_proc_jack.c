@@ -40,7 +40,7 @@ Send these events using JACK library.
 
 #define CACHE_NOBJS 1024
 
-static int debug = 0;
+static int debug = 1;
 
 static jack_port_t* port;
 static jack_port_t* output_port;
@@ -245,6 +245,9 @@ output_thread(void *aux)
             jack_ringbuffer_read(thread_data->rb, (char*) &m, sizeof(midimsg));
 
             if (push_to_output_fifo(&m)) { continue; /* On error just keep going. */ }
+            if (debug) {
+                fprintf(stdout,"sent message at time %lu\n", m.tme_mon);
+            }
         }
         // fflush (stdout); // ?
         /* TODO Pretty sure this shouldn't go here */
@@ -270,6 +273,7 @@ input_thread(void *aux)
     midimsg just_recvd;
     if (debug) { fprintf(stderr,"input thread running\n"); }
     while (*thread_data->keeprunning) {
+        if (debug) { sleep(1); }
         /* blocks while waiting for messages on FIFO */
         if (read_from_input_fifo(&just_recvd) < 0) {
             *thread_data->keeprunning = 0;
