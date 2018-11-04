@@ -38,9 +38,13 @@ Send these events using JACK library.
 #define MAX(a,b) ( (a) < (b) ? (b) : (a) )
 #endif
 
+#ifndef MIN
+#define MIN(a,b) ((a)<(b)?(a):(b))
+#endif 
+
 #define CACHE_NOBJS 1024
 
-static int debug = 1;
+static int debug;
 
 static jack_port_t* port;
 static jack_port_t* output_port;
@@ -140,6 +144,9 @@ process (jack_nframes_t frames, void* arg)
         return 0;
     }
     _frames = frames;
+    if (N > 0) {
+        fprintf(stderr,"received %d events\n",N);
+    }
 	for (i = 0; i < N; ++i) {
 		jack_midi_event_t event;
 		int r;
@@ -150,8 +157,10 @@ process (jack_nframes_t frames, void* arg)
 			midimsg m;
 			m.tme_mon = monotonic_cnt;
 			m.size    = event.size;
-			memcpy (m.buffer, event.buffer, MAX(sizeof(m.buffer), event.size));
-			jack_ringbuffer_write (rb, (void *) &m, sizeof(midimsg));
+			memcpy (m.buffer, event.buffer, MIN(sizeof(m.buffer), event.size));
+			if (jack_ringbuffer_write (rb, (void *) &m, sizeof(midimsg)) < sizeof(midimsg)) {
+                fprintf(stderr,"%s: error writing to jack ringbuffer\n", __FILE__);
+            }
             monotonic_cnt += event.time;
             _frames = event.time > _frames ? 0 : _frames - event.time;
 
@@ -170,7 +179,11 @@ process (jack_nframes_t frames, void* arg)
     if (pthread_mutex_trylock (&heap_lock) == 0) {
         midimsg *soonestmsg = NULL;
         if (debug) { fprintf(stderr,"Heap size: %zu\n",Heap_size(outevheap)); }
-        if (debug) { fprintf(stderr,"current time, frame start: %lu frame end: %lu\n",monotonic_cnt_beg_frame,monotonic_cnt); }
+        if (debug) {
+            fprintf(stderr,
+            "current time, frame start: %lu frame end: %lu\n",
+            monotonic_cnt_beg_frame,monotonic_cnt); 
+        }
         /* While there are late or on-time messages in the heap, check if they
         should be sent, and if so, send them */
         while ((Heap_top(outevheap,(void**)&soonestmsg) == HEAP_ENONE)
@@ -190,16 +203,29 @@ process (jack_nframes_t frames, void* arg)
             }
             /* If it should be played, copy message to midimsgbuf */
             if (midimsgbuf) {
-                if (debug) { fprintf(stderr,"play MIDI msg, time: %lu status: %#x ",soonestmsg->tme_mon,soonestmsg->buffer[0]);
+                if (1) {
+                    fprintf(
+                    stderr,"play MIDI msg, size %u time: %lu status: %#x ",
+                    soonestmsg->size,
+                    soonestmsg->tme_mon,
+                    soonestmsg->buffer[0]);
                     int i;
-                    for (i = 1; i < soonestmsg->size; i++) { fprintf(stderr,"%d ",soonestmsg->buffer[i]); }
+                    for (i = 1; i < soonestmsg->size; i++) { 
+                        fprintf(stderr,
+                        "%d ",
+                        soonestmsg->buffer[i]);
+                    }
                     fprintf(stderr,"\n");
                 }
                 memcpy(midimsgbuf,soonestmsg->buffer,soonestmsg->size);
             } else {
                 if (shouldplay) {
-                    if (debug) { fprintf(stderr,"Returned NULL when requesting MIDI event of size %u at time %u, MIDI msg not sent\n",
-                            soonestmsg->size,currel); }
+                    if (debug) {
+                    fprintf(stderr,
+                    "Returned NULL when requesting MIDI event of size %u at time %u, "
+                    "MIDI msg not sent\n",
+                    soonestmsg->size,currel);
+                    }
                 }
             }
             /* soonestmsg was sent, so remove it from the heap and free the
@@ -208,7 +234,11 @@ process (jack_nframes_t frames, void* arg)
             fastcache_free(out_midimsg_cache,soonestmsg);
         }
         if (soonestmsg) {
-            if (debug) { fprintf(stderr,"Soonest message at time %lu\n",soonestmsg->tme_mon); }
+            if (debug) {
+                fprintf(stderr,
+                "Soonest message at time %lu\n",
+                soonestmsg->tme_mon);
+            }
         }
         /* Give up the heap lock so the FIFO from
         the external app can fill it.  */
@@ -234,7 +264,10 @@ output_thread(void *aux)
     /* Wait for the lock */
     pthread_mutex_lock (thread_data->msg_thread_lock);
 
-    if (debug) { fprintf(stderr,"output thread running\n"); }
+    if (debug) {
+    fprintf(stderr,
+    "output thread running\n"); 
+    }
     while (*thread_data->keeprunning) {
         /* Wait for data to be ready in the ring buffer */
         pthread_cond_wait (thread_data->data_ready, thread_data->msg_thread_lock);
@@ -273,9 +306,10 @@ input_thread(void *aux)
     midimsg just_recvd;
     if (debug) { fprintf(stderr,"input thread running\n"); }
     while (*thread_data->keeprunning) {
-        if (debug) { sleep(1); }
+        sleep(1);
         /* blocks while waiting for messages on FIFO */
         if (read_from_input_fifo(&just_recvd) < 0) {
+            fprintf(stderr,"%s: input thread stopping...\n",__FILE__);
             *thread_data->keeprunning = 0;
             break;
         }
