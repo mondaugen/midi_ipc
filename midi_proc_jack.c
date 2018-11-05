@@ -79,7 +79,7 @@ push_to_output_fifo (const midimsg* event)
         ERROR("Output FIFO not open");
         return -1;
     }
-    if (write(output_fifo_fd,event,sizeof(event)) < 0) {
+    if (write(output_fifo_fd,event,sizeof(midimsg)) < 0) {
         perror("Sending MIDI message to FIFO");
         return -2;
     }
@@ -93,7 +93,7 @@ read_from_input_fifo (midimsg *event)
         ERROR("Input FIFO not open");
         return -1;
     }
-    if (read(input_fifo_fd,event,sizeof(event)) < 0) {
+    if (read(input_fifo_fd,event,sizeof(midimsg)) < 0) {
         perror("Receiving MIDI message from FIFO");
         return -2;
     }
@@ -306,7 +306,7 @@ input_thread(void *aux)
     midimsg just_recvd;
     if (debug) { fprintf(stderr,"input thread running\n"); }
     while (*thread_data->keeprunning) {
-        sleep(1);
+        //sleep(1);
         /* blocks while waiting for messages on FIFO */
         if (read_from_input_fifo(&just_recvd) < 0) {
             fprintf(stderr,"%s: input thread stopping...\n",__FILE__);

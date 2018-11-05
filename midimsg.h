@@ -16,6 +16,6 @@ typedef struct {
     events should be output i.e., the heap sorts by this value so that the event
     that should happen soonest is always at the top. */
 	uint64_t tme_mon;
-} __attribute__((packed)) midimsg;
+} midimsg;
 
 #endif /* MIDIMSG_H */

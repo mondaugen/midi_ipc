@@ -13,7 +13,7 @@ open_output_fifo (const char *path)
     char output_path[strlen(path)+strlen("_output")+1];
     strcat(strcpy(output_path,path),"_output");
     printf("Opening output FIFO at path %s\n",output_path);
-    int ret = open(output_path, O_WRONLY);
+    int ret = open(output_path, O_WRONLY | O_SYNC);
     if (ret < 0) {
         char buf[strlen("Opening output FIFO at path ")+strlen(output_path)+1];
         sprintf(buf,"Opening output FIFO at path %s", output_path);

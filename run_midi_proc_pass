@@ -6,6 +6,14 @@
 
 source common.sh
 
+on_quit ()
+{
+    kill_all
+    rm ${fifo_name}_output ${fifo_name}_input
+    exit 0
+}
+trap on_quit SIGINT
+
 export PYTHONPATH="$(dirname $0):$PYTHONPATH"
 
 client_name=midi_proc_jack_pass_test
@@ -47,14 +55,6 @@ fi
 jack_connect fluidsynth:l_00 system:playback_1
 jack_connect fluidsynth:r_00 system:playback_2
 
-on_quit ()
-{
-    kill_all
-    rm ${fifo_name}_output ${fifo_name}_input
-    exit 0
-}
-
-trap on_quit SIGINT
 
 while [ 1 ]; do
     sleep 1

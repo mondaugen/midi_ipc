@@ -8,3 +8,5 @@ c_to_py_msg : c_to_py_msg.o
 test_fastcache : test_fastcache.o fastcache.o
 
 test/midimsg_to_py : test/midimsg_to_py.o io_fifo.o
+
+test/midimsg_size : test/midimsg_size.o

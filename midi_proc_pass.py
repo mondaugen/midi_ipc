@@ -30,24 +30,30 @@ msg = b''
 while not done:
     # read in
     try:
-        msg += os.read(input_fifo,common.midimsg_struct.size)
+        msg = os.read(input_fifo,common.midimsg_struct.size)
         #msg = input_fifo.read(common.midimsg_struct.size)
     except BlockingIOError:
         continue # Don't send message, we don't have one to send
-    while len(msg) > common.midimsg_struct.size:
-        print("midi_proc_pass.py: message length: %d" % (len(msg),))
-        parsed_msg = common.midimsg_struct.unpack(msg[:common.midimsg_struct.size])
-        print(parsed_msg)
-        #print("midi_proc_pass.py: message")
-        #print(parsed_msg[:common.midimsg_buffer_size])
-        #print("size")
-        #print(parsed_msg[common.midimsg_buffer_size])
-        #print("time")
-        #print(parsed_msg[common.midimsg_buffer_size+1])
-        # write out
+    midibuf,nbytes,time=common.midimsg_struct.unpack(msg)
+    print(midibuf)
+    for i in range(1,5):
+        #midibuf[1] += 2*i
+        msg = common.midimsg_struct.pack(midibuf,nbytes,time+5000*(2**i))
         output_fifo.write(msg)
-        msg = msg[common.midimsg_struct.size:]
-    time.sleep(0.001)
+    #while len(msg) > common.midimsg_struct.size:
+    #    print("midi_proc_pass.py: message length: %d" % (len(msg),))
+    #    parsed_msg = common.midimsg_struct.unpack(msg[:common.midimsg_struct.size])
+    #    print(parsed_msg)
+    #    #print("midi_proc_pass.py: message")
+    #    #print(parsed_msg[:common.midimsg_buffer_size])
+    #    #print("size")
+    #    #print(parsed_msg[common.midimsg_buffer_size])
+    #    #print("time")
+    #    #print(parsed_msg[common.midimsg_buffer_size+1])
+    #    # write out
+    #    output_fifo.write(msg)
+    #    msg = msg[common.midimsg_struct.size:]
+    #time.sleep(0.001)
 
 print("Closing FIFOs")
 

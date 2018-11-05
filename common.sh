@@ -1,5 +1,4 @@
 # Start a program, save its pid
-# Assumes only 1 of program is running
 launch_ () 
 {
     $*&
